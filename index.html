@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qui est là aujourd'hui ?</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon.png">
+
+<style>
+:root{
+  --violet:#6d2c91;
+  --violet2:#8a52a9;
+  --bg:#f5f4f8;
+  --card:#fff;
+  --ink:#2d2d33;
+  --muted:#72727c;
+  --line:#e3e0e8;
+  --night:#24324a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,var(--violet),var(--violet2));color:#fff;padding:26px 20px;text-align:center}
+header h1{margin:0 0 6px;font-size:clamp(1.9rem,4vw,2.7rem)}
+header p{margin:0;opacity:.92}
+.wrap{max-width:1100px;margin:auto;padding:18px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+button,.file-label{border:0;border-radius:10px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}
+.primary{background:var(--violet);color:white}
+.secondary{background:#ebe6ef;color:#5d246f}
+.ghost{background:#fff;border:1px solid var(--line);color:#444}
+.danger{background:#fff1f1;color:#9c3434;border:1px solid #efcccc}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
+h2{font-size:1.1rem;margin:0 0 12px}
+label{display:block;font-size:.85rem;font-weight:750;margin:12px 0 5px}
+input[type=text],input[type=date],select{width:100%;padding:10px;border:1px solid #d9d4df;border-radius:10px;font:inherit;background:#fff}
+input[type=file]{display:none}
+.photo-picker{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.preview-mini{width:54px;height:54px;border-radius:12px;object-fit:cover;border:1px solid var(--line);background:#fafafa}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.checkbox-row input{width:18px;height:18px}
+.help{font-size:.82rem;color:var(--muted);line-height:1.45}
+.board{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;min-height:520px}
+.board-head{text-align:center;border-bottom:1px solid #eee;padding-bottom:14px;margin-bottom:16px}
+.board-head h2{font-size:2rem;margin:0;color:#3a2941}
+.board-head .date{margin-top:5px;color:var(--muted);font-weight:650}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.person-card{border:2px solid #eadff0;border-radius:18px;padding:12px;text-align:center;background:#fff;position:relative}
+.person-card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;background:#f3eef5}
+.person-name{font-size:1.28rem;font-weight:850;margin-top:10px}
+.person-role{font-size:.8rem;color:var(--muted);margin-top:3px}
+.badge{position:absolute;top:10px;right:10px;background:#fff;border-radius:999px;padding:4px 7px;font-size:.72rem;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.hero-card{background:linear-gradient(180deg,#fff7df,#fff)}
+.hero-wrap{width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#dff0ff,#f9fcff)}
+.night-section{margin-top:24px;border-top:2px dashed #d8d5de;padding-top:18px}
+.night-title{display:flex;align-items:center;gap:8px;font-size:1.15rem;font-weight:850;color:var(--night);margin-bottom:12px}
+.night-card{max-width:260px;margin:auto;background:linear-gradient(180deg,#eef2f8,#fff);border-color:#ccd6e4}
+.empty{text-align:center;color:var(--muted);padding:28px 10px;border:1px dashed #d9d5de;border-radius:14px}
+.person-actions{display:flex;gap:6px;justify-content:center;margin-top:9px}
+.person-actions button{padding:5px 8px;font-size:.72rem}
+svg{display:block;width:100%;height:100%}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.cards{grid-template-columns:1fr}.wrap{padding:10px}}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  header,.toolbar,.setup,.person-actions,.no-print{display:none!important}
+  body{background:#fff}
+  .wrap{padding:0;max-width:none}
+  .grid{display:block}
+  .board{border:0;box-shadow:none;padding:0}
+  .cards{grid-template-columns:repeat(3,1fr)}
+  .person-card{break-inside:avoid}
+  .night-section{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Qui est là aujourd'hui ?</h1>
+  <p>Un repère simple : les adultes présents aujourd'hui, et le veilleur de nuit.</p>
+</header>
+
+<main class="wrap">
+  <div class="toolbar no-print">
+    <button class="primary" onclick="window.print()">Imprimer / PDF</button>
+    <button class="secondary" onclick="saveBoard()">Enregistrer</button>
+    <button class="ghost" onclick="newBoard()">Nouveau tableau</button>
+  </div>
+
+  <div class="grid">
+    <aside class="panel setup no-print">
+      <h2>Ajouter une personne</h2>
+
+      <label>Date</label>
+      <input id="boardDate" type="date" onchange="render()">
+
+      <label>Prénom</label>
+      <input id="firstName" type="text" placeholder="Ex. Sarah">
+
+      <label>Type</label>
+      <select id="roleType" onchange="togglePhotoArea()">
+        <option value="day">Adulte présent aujourd'hui</option>
+        <option value="replacement">Remplaçant</option>
+        <option value="night">Veilleur de nuit</option>
+      </select>
+
+      <div id="photoArea">
+        <label>Photo</label>
+        <div class="photo-picker">
+          <label class="file-label ghost">Choisir une photo
+            <input id="photoInput" type="file" accept="image/*" onchange="loadPhoto(event)">
+          </label>
+          <img id="photoPreview" class="preview-mini" alt="">
+        </div>
+        <div class="help">Pour les adultes habituels et le veilleur : prénom + photo.</div>
+      </div>
+
+      <div id="replacementInfo" class="help" style="display:none;margin-top:12px">
+        Le remplaçant sera affiché avec le dessin de super-héros intégré à l'outil.
+      </div>
+
+      <div style="margin-top:14px">
+        <button class="primary" style="width:100%" onclick="addPerson()">Ajouter au tableau</button>
+      </div>
+
+      <div class="help" style="margin-top:14px">
+        Les données et photos restent enregistrées localement dans ce navigateur si tu utilises « Enregistrer ».
+      </div>
+    </aside>
+
+    <section class="board">
+      <div class="board-head">
+        <h2>Qui est là aujourd'hui ?</h2>
+        <div id="dateDisplay" class="date"></div>
+      </div>
+
+      <div id="dayArea"></div>
+
+      <div class="night-section">
+        <div class="night-title">🌙 Cette nuit</div>
+        <div id="nightArea"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const KEY="qui_est_la_aujourdhui_v1";
+let state={date:new Date().toISOString().slice(0,10),people:[]};
+let pendingPhoto="";
+
+function esc(s){
+  return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function superheroSvg(){
+  return `
+  <div class="hero-wrap">
+    <svg viewBox="0 0 300 300" aria-label="Illustration d'un super-héros">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d9efff"/>
+          <stop offset="1" stop-color="#ffffff"/>
+        </linearGradient>
+      </defs>
+      <rect width="300" height="300" fill="url(#sky)"/>
+      <circle cx="150" cy="82" r="39" fill="#f2c7a5"/>
+      <path d="M111 80 Q150 37 189 80 L182 55 Q149 24 117 52Z" fill="#3a2a48"/>
+      <path d="M116 78 Q150 98 184 78" fill="none" stroke="#5f2d83" stroke-width="10"/>
+      <circle cx="136" cy="81" r="5" fill="#2d2730"/>
+      <circle cx="164" cy="81" r="5" fill="#2d2730"/>
+      <path d="M137 101 Q150 111 163 101" fill="none" stroke="#9a5a52" stroke-width="4" stroke-linecap="round"/>
+      <path d="M106 129 Q150 108 194 129 L215 232 Q150 257 85 232Z" fill="#6d2c91"/>
+      <path d="M118 130 L150 178 L182 130" fill="#fff4dc"/>
+      <path d="M150 145 L166 165 L150 184 L134 165Z" fill="#f0b323"/>
+      <path d="M108 136 L65 195 L92 209 L128 164Z" fill="#f2c7a5"/>
+      <path d="M192 136 L235 195 L208 209 L172 164Z" fill="#f2c7a5"/>
+      <path d="M112 232 L101 287 L131 287 L151 236Z" fill="#3e5793"/>
+      <path d="M188 232 L199 287 L169 287 L149 236Z" fill="#3e5793"/>
+      <path d="M102 135 L69 151 L98 205 L122 171Z" fill="#d74b4b"/>
+      <path d="M198 135 L231 151 L202 205 L178 171Z" fill="#d74b4b"/>
+      <path d="M96 286 H136" stroke="#2f3344" stroke-width="12" stroke-linecap="round"/>
+      <path d="M164 286 H204" stroke="#2f3344" stroke-width="12" stroke-linecap="round"/>
+      <path d="M150 15 l7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" fill="#f0b323"/>
+    </svg>
+  </div>`;
+}
+function placeholderSvg(){
+  return `data:image/svg+xml;charset=UTF-8,`+encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+    <rect width="100%" height="100%" fill="#f2eef5"/>
+    <circle cx="200" cy="145" r="70" fill="#d5c8dc"/>
+    <path d="M70 365c15-92 72-137 130-137s115 45 130 137" fill="#d5c8dc"/>
+  </svg>`);
+}
+function togglePhotoArea(){
+  const type=document.getElementById("roleType").value;
+  document.getElementById("photoArea").style.display=type==="replacement"?"none":"block";
+  document.getElementById("replacementInfo").style.display=type==="replacement"?"block":"none";
+}
+function loadPhoto(ev){
+  const file=ev.target.files?.[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=500; let w=img.width,h=img.height;
+      if(w>h&&w>max){h=Math.round(h*max/w);w=max}
+      else if(h>=w&&h>max){w=Math.round(w*max/h);h=max}
+      const c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      pendingPhoto=c.toDataURL("image/jpeg",.82);
+      document.getElementById("photoPreview").src=pendingPhoto;
+    };
+    img.src=r.result;
+  };
+  r.readAsDataURL(file);
+}
+function addPerson(){
+  const name=document.getElementById("firstName").value.trim();
+  const type=document.getElementById("roleType").value;
+  if(!name){alert("Indique le prénom.");return}
+  if(type!=="replacement"&&!pendingPhoto){
+    if(!confirm("Aucune photo n'a été choisie. Ajouter quand même cette personne ?"))return;
+  }
+  state.date=document.getElementById("boardDate").value||state.date;
+  state.people.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name,type,photo:type==="replacement"?"":pendingPhoto});
+  document.getElementById("firstName").value="";
+  document.getElementById("photoInput").value="";
+  document.getElementById("photoPreview").src="";
+  pendingPhoto="";
+  render();
+}
+function removePerson(id){
+  state.people=state.people.filter(p=>p.id!==id);render();
+}
+function cardHtml(p){
+  const role=p.type==="replacement"?"Remplaçant":p.type==="night"?"Veilleur de nuit":"";
+  const visual=p.type==="replacement"
+    ? superheroSvg()
+    : `<img src="${esc(p.photo||placeholderSvg())}" alt="Photo de ${esc(p.name)}">`;
+  return `<article class="person-card ${p.type==="replacement"?"hero-card":p.type==="night"?"night-card":""}">
+    ${p.type==="replacement"?'<span class="badge">⭐ Remplaçant</span>':""}
+    ${visual}
+    <div class="person-name">${esc(p.name)}</div>
+    ${role?`<div class="person-role">${esc(role)}</div>`:""}
+    <div class="person-actions no-print"><button class="danger" onclick="removePerson('${p.id}')">Retirer</button></div>
+  </article>`;
+}
+function render(){
+  document.getElementById("boardDate").value=state.date;
+  const date=new Date((state.date||new Date().toISOString().slice(0,10))+"T12:00:00");
+  document.getElementById("dateDisplay").textContent=date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  const day=state.people.filter(p=>p.type!=="night");
+  const night=state.people.filter(p=>p.type==="night");
+  document.getElementById("dayArea").innerHTML=day.length?`<div class="cards">${day.map(cardHtml).join("")}</div>`:`<div class="empty">Ajoute les adultes présents aujourd'hui.</div>`;
+  document.getElementById("nightArea").innerHTML=night.length?`<div class="cards">${night.map(cardHtml).join("")}</div>`:`<div class="empty">Ajoute le veilleur de nuit.</div>`;
+}
+function saveBoard(){
+  state.date=document.getElementById("boardDate").value||state.date;
+  localStorage.setItem(KEY,JSON.stringify(state));
+  render();
+  alert("Tableau enregistré sur ce navigateur.");
+}
+function newBoard(){
+  if(state.people.length&&!confirm("Créer un nouveau tableau ? Les personnes non enregistrées seront perdues."))return;
+  state={date:new Date().toISOString().slice(0,10),people:[]};
+  pendingPhoto="";
+  render();
+}
+(function init(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(saved&&Array.isArray(saved.people))state=saved;
+  }catch(e){}
+  render();togglePhotoArea();
+})();
+</script>
+</body>
+</html>
