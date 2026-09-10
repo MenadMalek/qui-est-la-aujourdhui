@@ -53,6 +53,9 @@ input[type=file]{display:none}
 .badge{position:absolute;top:10px;right:10px;background:#fff;border-radius:999px;padding:4px 7px;font-size:.72rem;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 .hero-card{background:linear-gradient(180deg,#fff7df,#fff)}
 .hero-wrap{width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#dff0ff,#f9fcff)}
+.day-section{margin-top:16px}
+.day-title{display:flex;align-items:center;gap:8px;font-size:1.15rem;font-weight:850;color:#4d3658;margin-bottom:12px}
+.afternoon-section{margin-top:24px;border-top:2px dashed #e4dfea;padding-top:18px}
 .night-section{margin-top:24px;border-top:2px dashed #d8d5de;padding-top:18px}
 .night-title{display:flex;align-items:center;gap:8px;font-size:1.15rem;font-weight:850;color:var(--night);margin-bottom:12px}
 .night-card{max-width:260px;margin:auto;background:linear-gradient(180deg,#eef2f8,#fff);border-color:#ccd6e4}
@@ -78,7 +81,7 @@ svg{display:block;width:100%;height:100%}
 <body>
 <header>
   <h1>Qui est là aujourd'hui ?</h1>
-  <p>Un repère simple : les adultes présents aujourd'hui, et le veilleur de nuit.</p>
+  <p>Un repère simple : les adultes présents le matin, l'après-midi et le veilleur de nuit.</p>
 </header>
 
 <main class="wrap">
@@ -98,12 +101,21 @@ svg{display:block;width:100%;height:100%}
       <label>Prénom</label>
       <input id="firstName" type="text" placeholder="Ex. Sarah">
 
-      <label>Type</label>
-      <select id="roleType" onchange="togglePhotoArea()">
-        <option value="day">Adulte présent aujourd'hui</option>
+      <label>Statut</label>
+      <select id="personType" onchange="togglePersonOptions()">
+        <option value="regular">Adulte habituel</option>
         <option value="replacement">Remplaçant</option>
         <option value="night">Veilleur de nuit</option>
       </select>
+
+      <div id="timeSlotArea">
+        <label>Présence</label>
+        <select id="timeSlot">
+          <option value="morning">Matin</option>
+          <option value="afternoon">Après-midi</option>
+          <option value="day">Toute la journée</option>
+        </select>
+      </div>
 
       <div id="photoArea">
         <label>Photo</label>
@@ -117,7 +129,7 @@ svg{display:block;width:100%;height:100%}
       </div>
 
       <div id="replacementInfo" class="help" style="display:none;margin-top:12px">
-        Le remplaçant sera affiché avec le dessin de super-héros intégré à l'outil.
+        Le remplaçant sera affiché avec le dessin de super-héros intégré à l'outil. Choisis ensuite s’il est présent le matin, l’après-midi ou toute la journée.
       </div>
 
       <div style="margin-top:14px">
@@ -135,7 +147,15 @@ svg{display:block;width:100%;height:100%}
         <div id="dateDisplay" class="date"></div>
       </div>
 
-      <div id="dayArea"></div>
+      <div class="day-section">
+        <div class="day-title">☀️ Ce matin</div>
+        <div id="morningArea"></div>
+      </div>
+
+      <div class="afternoon-section">
+        <div class="day-title">🌤️ Cet après-midi</div>
+        <div id="afternoonArea"></div>
+      </div>
 
       <div class="night-section">
         <div class="night-title">🌙 Cette nuit</div>
@@ -193,10 +213,13 @@ function placeholderSvg(){
     <path d="M70 365c15-92 72-137 130-137s115 45 130 137" fill="#d5c8dc"/>
   </svg>`);
 }
-function togglePhotoArea(){
-  const type=document.getElementById("roleType").value;
-  document.getElementById("photoArea").style.display=type==="replacement"?"none":"block";
-  document.getElementById("replacementInfo").style.display=type==="replacement"?"block":"none";
+function togglePersonOptions(){
+  const type=document.getElementById("personType").value;
+  const isReplacement=type==="replacement";
+  const isNight=type==="night";
+  document.getElementById("photoArea").style.display=isReplacement?"none":"block";
+  document.getElementById("replacementInfo").style.display=isReplacement?"block":"none";
+  document.getElementById("timeSlotArea").style.display=isNight?"none":"block";
 }
 function loadPhoto(ev){
   const file=ev.target.files?.[0]; if(!file)return;
@@ -218,13 +241,20 @@ function loadPhoto(ev){
 }
 function addPerson(){
   const name=document.getElementById("firstName").value.trim();
-  const type=document.getElementById("roleType").value;
+  const type=document.getElementById("personType").value;
+  const slot=type==="night"?"night":document.getElementById("timeSlot").value;
   if(!name){alert("Indique le prénom.");return}
   if(type!=="replacement"&&!pendingPhoto){
     if(!confirm("Aucune photo n'a été choisie. Ajouter quand même cette personne ?"))return;
   }
   state.date=document.getElementById("boardDate").value||state.date;
-  state.people.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),name,type,photo:type==="replacement"?"":pendingPhoto});
+  state.people.push({
+    id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    name,
+    type,
+    slot,
+    photo:type==="replacement"?"":pendingPhoto
+  });
   document.getElementById("firstName").value="";
   document.getElementById("photoInput").value="";
   document.getElementById("photoPreview").src="";
@@ -251,10 +281,32 @@ function render(){
   document.getElementById("boardDate").value=state.date;
   const date=new Date((state.date||new Date().toISOString().slice(0,10))+"T12:00:00");
   document.getElementById("dateDisplay").textContent=date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  const day=state.people.filter(p=>p.type!=="night");
+
+  // Compatibilité avec l'ancienne version : les anciennes personnes "day"
+  // sont considérées comme présentes toute la journée.
+  state.people.forEach(p=>{
+    if(!p.slot){
+      if(p.type==="night") p.slot="night";
+      else p.slot="day";
+    }
+    if(p.type==="day") p.type="regular";
+  });
+
+  const morning=state.people.filter(p=>p.type!=="night" && (p.slot==="morning" || p.slot==="day"));
+  const afternoon=state.people.filter(p=>p.type!=="night" && (p.slot==="afternoon" || p.slot==="day"));
   const night=state.people.filter(p=>p.type==="night");
-  document.getElementById("dayArea").innerHTML=day.length?`<div class="cards">${day.map(cardHtml).join("")}</div>`:`<div class="empty">Ajoute les adultes présents aujourd'hui.</div>`;
-  document.getElementById("nightArea").innerHTML=night.length?`<div class="cards">${night.map(cardHtml).join("")}</div>`:`<div class="empty">Ajoute le veilleur de nuit.</div>`;
+
+  document.getElementById("morningArea").innerHTML=morning.length
+    ? `<div class="cards">${morning.map(cardHtml).join("")}</div>`
+    : `<div class="empty">Ajoute les adultes présents le matin.</div>`;
+
+  document.getElementById("afternoonArea").innerHTML=afternoon.length
+    ? `<div class="cards">${afternoon.map(cardHtml).join("")}</div>`
+    : `<div class="empty">Ajoute les adultes présents l'après-midi.</div>`;
+
+  document.getElementById("nightArea").innerHTML=night.length
+    ? `<div class="cards">${night.map(cardHtml).join("")}</div>`
+    : `<div class="empty">Ajoute le veilleur de nuit.</div>`;
 }
 function saveBoard(){
   state.date=document.getElementById("boardDate").value||state.date;
@@ -273,7 +325,7 @@ function newBoard(){
     const saved=JSON.parse(localStorage.getItem(KEY)||"null");
     if(saved&&Array.isArray(saved.people))state=saved;
   }catch(e){}
-  render();togglePhotoArea();
+  render();togglePersonOptions();
 })();
 </script>
 </body>

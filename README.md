@@ -1,21 +1,20 @@
 # Qui est là aujourd'hui ?
 
-Outil web gratuit permettant de créer rapidement un repère visuel des adultes présents auprès de l’enfant pendant la journée, avec une zone spécifique pour le veilleur de nuit.
+Outil web gratuit permettant de créer rapidement un repère visuel des adultes présents auprès de l’enfant **le matin**, **l’après-midi** et **la nuit**.
 
 ## Fonctions principales
 
 - ajout des adultes présents avec **prénom + photo** ;
+- distinction **matin / après-midi / toute la journée** ;
 - ajout d’un **remplaçant** représenté par une illustration de super-héros ;
+- possibilité d’indiquer si le remplaçant est présent le matin, l’après-midi ou toute la journée ;
 - zone dédiée au **veilleur de nuit**, avec prénom + photo ;
-- affichage clair et directement compréhensible ;
 - impression ou enregistrement en PDF ;
 - enregistrement local du tableau dans le navigateur.
 
 ## Objectif
 
-L’outil vise à rendre plus lisibles les repères humains de la journée, notamment lorsque les adultes présents peuvent varier.
-
-Il peut être utilisé en protection de l’enfance, en établissement médico-social ou dans tout contexte où la stabilité des personnes présentes constitue un repère utile pour l’enfant.
+L’outil vise à rendre plus lisibles les repères humains de la journée lorsque les adultes présents peuvent varier selon les moments.
 
 ## Confidentialité
 
@@ -26,14 +25,3 @@ Pour un usage professionnel, la conservation et la transmission des informations
 ## Auteur
 
 **Malek MENAD — Éducateur spécialisé**
-
-## Mise en ligne avec GitHub Pages
-
-Dans le dépôt GitHub :
-
-1. Ouvrir **Settings → Pages**.
-2. Choisir **Deploy from a branch**.
-3. Sélectionner **main** puis **/(root)**.
-4. Enregistrer.
-
-Le fichier `index.html` doit rester à la racine du dépôt.
