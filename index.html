@@ -77,6 +77,21 @@ svg{display:block;width:100%;height:100%}
   .night-section{break-inside:avoid}
 }
 </style>
+
+<style>
+.license-notice{
+  max-width:1100px;
+  margin:18px auto 8px;
+  padding:10px 16px;
+  text-align:center;
+  font-size:11px;
+  line-height:1.45;
+  color:#6b6870;
+}
+.license-notice a{color:inherit;text-decoration:underline}
+@media print{.license-notice{display:none!important}}
+</style>
+
 </head>
 <body>
 <header>
@@ -89,6 +104,7 @@ svg{display:block;width:100%;height:100%}
     <button class="primary" onclick="window.print()">Imprimer / PDF</button>
     <button class="secondary" onclick="saveBoard()">Enregistrer</button>
     <button class="ghost" onclick="newBoard()">Nouveau tableau</button>
+    <button class="danger" onclick="effacerToutesLesDonneesOutil()">Effacer toutes les données</button>
   </div>
 
   <div class="grid">
@@ -328,5 +344,24 @@ function newBoard(){
   render();togglePersonOptions();
 })();
 </script>
+
+  
+<script>
+function effacerToutesLesDonneesOutil(){
+  if(!confirm("Effacer définitivement le tableau, les prénoms et les photos enregistrés par cet outil dans ce navigateur ?")) return;
+  localStorage.removeItem(KEY);
+  alert("Toutes les données enregistrées par cet outil ont été supprimées.");
+  location.reload();
+}
+</script>
+
+<script data-goatcounter="https://menadmalek.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
+
+<div class="license-notice no-print">
+  © 2026 Malek MENAD — Usage personnel gratuit.
+  Usage professionnel ou institutionnel soumis à autorisation préalable.
+  Revente interdite. <a href="LICENSE.txt" target="_blank" rel="noopener">Voir la licence</a>.
+</div>
 </body>
 </html>
